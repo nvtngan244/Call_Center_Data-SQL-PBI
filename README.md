@@ -59,7 +59,7 @@ Các bảng Fact đều có cấu trúc cột giống nhau:
 | WaitTime | Thời gian khách hàng chờ trước khi được trả lời (giây) |
 | CallAbandoned | 1 = cuộc gọi bị hủy bỏ, 0 = cuộc gọi được xử lý |
  
-**🔹 Employee Table**
+**🔹 Dim_Employee Table**
 | Cột | Mô tả |
 |---|---|
 | EmployeeID | Mã nhân viên (Khóa chính) |
@@ -67,12 +67,22 @@ Các bảng Fact đều có cấu trúc cột giống nhau:
 | Site | Chi nhánh làm việc |
 | ManagerName | Quản lý của nhân viên |
 
-**🔹 Call Type ID Table**
+**🔹 Dim_CallType Table**
 | Cột | Mô tả |
 |---|---|
 | CallTypeID | Mã loại cuộc gọi (Khóa chính) |
-| CallTypeDesc | Mô tả loại cuộc gọi |
- 
+| CallTypeDesc | Tên loại cuộc gọi |
+
+**🔹 Dim_CallCharges Table**
+| Cột | Mô tả |
+|---|---|
+| Call Type Key | Mã loại cuộc gọi (Khóa chính) |
+| Call Type | Tên loại cuộc gọi |
+| Call Charges 2018 (Min) | Giá cước năm 2018 (theo phút) |
+| Call Charges 2019 (Min) | Giá cước năm 2019 (theo phút) |
+| Call Charges 2020 (Min) | Giá cước năm 2020 (theo phút) |
+| Call Charges 2021 (Min) | Giá cước năm 2021 (theo phút) |
+
 ---
  
 ## 4. Công cụ sử dụng
@@ -95,14 +105,26 @@ Các bảng Fact đều có cấu trúc cột giống nhau:
 **3️⃣ Bước 3 - SSMS: Làm sạch bảng Fact:**
 - Kiểm tra `EmployeeID` và `CallTypeID` trong Fact Table có tồn tại trong bảng Dim tương ứng không, tránh lỗi orphan record khi join
 - Kiểm tra dữ liệu bất thường trước khi phân tích (`CallDuration < 0 OR WaitTime < 0`)
-- Thêm cột `SLA_Compliance` (kiểu `VARCHAR(20)`) vào từng bảng Fact theo năm, gán giá trị `'Within SLA'` nếu `WaitTime < 35`, ngược lại là `'Outside SLA'`
 
 **4️⃣ Bước 4 - SSMS: Gộp 4 bảng Fact đã làm sạch thành một view duy nhất:**
 - Sau khi mỗi bảng đã có cột `SLA_Compliance`, gộp cả 4 bảng theo năm thành view `v_Fact_All` bằng `UNION ALL`
 
 ---
+## 6. Chuẩn bị Dữ liệu
+**1️⃣ Bước 1: Tạo cột đánh giá chất lượng dịch vụ (Service Level Agreement - SLA):**
+- Thêm cột `SLA_Compliance` (kiểu `VARCHAR(20)`) vào từng bảng Fact theo năm
+  - Gán giá trị `'Within SLA'` nếu `WaitTime < 35`
+  - Ngược lại là `'Outside SLA'`
+
+**2️⃣ Bước 2: Tạo cột giá cước theo phút:**
+- Thêm cột `Call_Charge` vào từng bảng Fact theo năm, lấy dữ liệu giá cước từ bảng `Dim_CallCharges`
+
+**3️⃣ Bước 3 - Tạo cột tổng giá cước:**
+- Thêm cột `Total_Call_Charge` vào từng bảng Fact theo năm, được tính bằng công thức `cast((CallDuration/ 60.00 * Call_Charge) as decimal(5,2))`
+
+---
  
-## 6. Phân Tích SQL
+## 7. Phân Tích SQL
  
 **Câu hỏi 1 (SLA Compliance): SLA compliance rate và abandon rate theo từng ngày trong tuần?**
 ```sql
@@ -167,7 +189,8 @@ ORDER BY avg_call_duration_sec DESC;
 ## 7. Dashboard Power BI
 
 **1. Xây dựng bảng Dim_Date:**
-Vì bảng `Fact_Call` chỉ có cột `CallTimestamp` dạng datetime, cần tạo riêng một bảng `Dim_Date` bằng DAX để hỗ trợ phân tích theo tháng, ngày, thứ, phục vụ theo dõi xu hướng theo thời gian mà không bị ảnh hưởng bởi các bộ lọc.
+
+Vì bảng `Fact_Call` chỉ có cột `CallTimestamp` dạng _datetime_, cần tạo riêng một bảng `Dim_Date` bằng DAX để hỗ trợ phân tích theo tháng, ngày, thứ, phục vụ theo dõi xu hướng theo thời gian mà không bị ảnh hưởng bởi các bộ lọc
 
 ```dax
 Dim_Date = 
@@ -186,9 +209,8 @@ Weekday_Order = weekday(Dim_Date[Date], 2)
 
 **2. Data Modeling:**
 
+<img width="1000" alt="Data Modeling" src="https://github.com/user-attachments/assets/63712064-3684-40ee-8af1-aa61732b9312" />
 
-> *(Chèn ảnh chụp màn hình dashboard thực tế tại đây, ví dụ: `![SLA Dashboard](images/dashboard_sla.png)`)*
- 
 **Dashboard:**
 - **Trang 1 — Tổng Quan SLA:** SLA compliance rate theo ngày/tuần, abandon rate, gauge chart so với mục tiêu SLA, xu hướng theo thời gian
 - **Trang 2 — Nhân Sự & Khung Giờ:** Heatmap lượng cuộc gọi theo giờ × site, so sánh abandon rate giữa các site
