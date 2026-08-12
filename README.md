@@ -17,14 +17,14 @@ Phân tích được thực hiện bằng SQL Server để xử lý dữ liệu 
 ---
 
 ## 2. Vấn đề Kinh doanh & Mục tiêu
-**Bối cảnh (giả định):** Trung tâm vận hành nhiều chi nhánh (`Site`), mỗi chi nhánh có đội ngũ nhân viên (`Employee`) và quản lý (`Manager`) riêng, tiếp nhận nhiều loại cuộc gọi khác nhau (được phân loại theo `Call Type`). Ban quản lý muốn đánh giá lại hiệu quả vận hành: liệu khách hàng có đang phải chờ quá lâu không, thời điểm nào quá tải, chi nhánh/nhân viên nào cần được hỗ trợ thêm, và liệu việc mở rộng doanh nghiệp qua các năm có ảnh hưởng đến chất lượng dịch vụ (SLA) không.
+**📍 Bối cảnh (giả định):** Trung tâm vận hành nhiều chi nhánh (`Site`), mỗi chi nhánh có đội ngũ nhân viên (`Employee`) và quản lý (`Manager`) riêng, tiếp nhận nhiều loại cuộc gọi khác nhau (được phân loại theo `Call Type`). Ban quản lý muốn đánh giá lại hiệu quả vận hành: liệu khách hàng có đang phải chờ quá lâu không, thời điểm nào quá tải, chi nhánh/nhân viên nào cần được hỗ trợ thêm, và liệu việc mở rộng doanh nghiệp qua các năm có ảnh hưởng đến chất lượng dịch vụ (SLA) không.
  
-**Câu hỏi kinh doanh cần trả lời:**
+**❓ Câu hỏi kinh doanh cần trả lời:**
 - **Thỏa thuận chất lượng dịch vụ (Service Level Agreement - SLA):** Bao nhiêu % cuộc gọi được trả lời trong ngưỡng thời gian chờ chấp nhận được?  Mối tương quan giữa loại cuộc gọi và thời gian chờ?
 - **Workforce Planning:** Khung giờ nào trong ngày quá tải và khung giờ nào nhàn rỗi? Biến động cuộc gọi theo ngày và tháng như thế nào? Chi nhánh nào đang quá tải, chi nhánh nào đang nhàn rỗi? Có cần bố trí lại nhân sự không?
 - **Performance Tracking:** Nhân viên/Chi nhánh nào có thời gian xử lý cuộc gọi và thời gian chờ tốt nhất và tệ nhất? Loại cuộc gọi nào chiếm tỷ trọng lớn nhất? Loại cuộc gọi nào tốn nhiều thời gian xử lý nhất?
 
-**Mục tiêu (KPI):**
+**🎯 Mục tiêu (KPI):**
 - % SLA Compliance: Tỷ lệ cuộc gọi có đạt ngưỡng SLA về thời gian chờ
    - Cuộc gọi đạt (`WaitTime` ≤ 35) được đánh giá là _**"Within SLA"**_
    - Cuộc gọi không đạt (`WaitTime` ≥ 35) được đánh giá là _**"Outside SLA"**_
