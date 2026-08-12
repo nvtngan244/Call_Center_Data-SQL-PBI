@@ -19,7 +19,7 @@ Phân tích được thực hiện bằng SQL Server để xử lý dữ liệu 
 ## 2. Vấn đề Kinh doanh & Mục tiêu
 **📍 Bối cảnh (giả định):** Trung tâm vận hành nhiều chi nhánh (`Site`), mỗi chi nhánh có đội ngũ nhân viên (`Employee`) và quản lý (`Manager`) riêng, tiếp nhận nhiều loại cuộc gọi khác nhau (được phân loại theo `Call Type`). Ban quản lý muốn đánh giá lại hiệu quả vận hành: liệu khách hàng có đang phải chờ quá lâu không, thời điểm nào quá tải, chi nhánh/nhân viên nào cần được hỗ trợ thêm, và liệu việc mở rộng doanh nghiệp qua các năm có ảnh hưởng đến chất lượng dịch vụ (SLA) không.
  
-**❓ Câu hỏi kinh doanh cần trả lời:**
+**❓ Câu hỏi cần trả lời:**
 - **Thỏa thuận chất lượng dịch vụ (Service Level Agreement - SLA):** Bao nhiêu % cuộc gọi được trả lời trong ngưỡng thời gian chờ chấp nhận được?  Mối tương quan giữa loại cuộc gọi và thời gian chờ?
 - **Workforce Planning:** Khung giờ nào trong ngày quá tải và khung giờ nào nhàn rỗi? Biến động cuộc gọi theo ngày và tháng như thế nào? Chi nhánh nào đang quá tải, chi nhánh nào đang nhàn rỗi? Có cần bố trí lại nhân sự không?
 - **Performance Tracking:** Nhân viên/Chi nhánh nào có thời gian xử lý cuộc gọi và thời gian chờ tốt nhất và tệ nhất? Loại cuộc gọi nào chiếm tỷ trọng lớn nhất? Loại cuộc gọi nào tốn nhiều thời gian xử lý nhất?
@@ -122,7 +122,7 @@ Các bảng Fact đều có cấu trúc cột giống nhau:
 
 ---
  
-## 7. Phân Tích SQL
+## 7. SQL Server
  
 **Câu hỏi 1 (SLA Compliance): SLA compliance rate và abandon rate theo từng ngày trong tuần?**
 ```sql
@@ -184,7 +184,7 @@ ORDER BY avg_call_duration_sec DESC;
  
 ---
  
-## 7. Dashboard Power BI
+## 7. Power BI
 
 **1. Xây dựng bảng Dim_Date:**
 
@@ -213,6 +213,7 @@ Weekday_Order = weekday(Dim_Date[Date], 2)
 - **Trang 1 — Tổng Quan SLA:** SLA compliance rate theo ngày/tuần, abandon rate, gauge chart so với mục tiêu SLA, xu hướng theo thời gian
 - **Trang 2 — Nhân Sự & Khung Giờ:** Heatmap lượng cuộc gọi theo giờ × site, so sánh abandon rate giữa các site
 - **Trang 3 — Hiệu Suất Nhân Viên & Loại Cuộc Gọi:** Bảng xếp hạng nhân viên theo wait time/call duration, phân tích theo loại cuộc gọi (`CallTypeDesc`)
+
 **DAX Measures tiêu biểu:**
 ```dax
 SLA Compliance Rate = 
