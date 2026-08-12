@@ -2,8 +2,6 @@
 
 > **Lưu ý:** Bối cảnh doanh nghiệp trong dự án này (tên công ty, quy mô, tình huống kinh doanh) là **giả định**, được xây dựng để minh họa cách áp dụng phân tích dữ liệu vào bài toán vận hành trung tâm cuộc gọi thực tế.
 
-SQL: Create View
-
 ---
 
 ## 📊 1. Tổng quan Dự án
