@@ -4,90 +4,102 @@
 
 SQL: Create View
 
-## 📊 1. Tổng quan Dự án
-Dự án phân tích dữ liệu vận hành của một trung tâm chăm sóc khách hàng (Call Center) đa chi nhánh (site), sử dụng SQL Server để xử lý dữ liệu cuộc gọi ở cấp độ giao dịch, sau đó xây dựng dashboard Power BI nhằm theo dõi 3 nhóm bài toán cốt lõi: **SLA Compliance** (tỷ lệ trả lời đúng hạn), **Workforce Planning** (bố trí nhân sự theo khung giờ) và **Performance Tracking** (hiệu suất nhân viên theo từng site).
- 
 ---
- 
-## 2. Vấn đề Kinh doanh
-**Bối cảnh (giả định):** Trung tâm vận hành nhiều site/chi nhánh, mỗi site có đội ngũ nhân viên (agent) và quản lý (manager) riêng, tiếp nhận nhiều loại cuộc gọi khác nhau (được phân loại theo `Call Type`). Ban quản lý muốn đánh giá lại hiệu quả vận hành: liệu khách hàng có đang phải chờ quá lâu không, thời điểm nào quá tải, và site/nhân viên nào cần được hỗ trợ thêm.
+
+## 📊 1. Tổng quan Dự án
+Dự án phân tích dữ liệu vận hành trong 4 năm (từ 2018 đến 2021) của một trung tâm cuộc gọi (call center - bộ phận chuyên xử lý các cuộc gọi đến và đi từ khách hàng và đối tác để chăm sóc khách hàng, hỗ trợ kỹ thuật, bán hàng hoặc thu thập thông tin thị trường, *[KrispCall, 2026]*[^1]).
+
+Phân tích được thực hiện bằng SQL Server để xử lý dữ liệu cuộc gọi ở cấp độ giao dịch, sau đó xây dựng dashboard Power BI nhằm theo dõi 3 nhóm bài toán cốt lõi:
+- **Thỏa thuận chất lượng dịch vụ (Service Level Agreement - SLA):** Chỉ số đánh giá liệu một cuộc gọi có được trả lời trong ngưỡng thời gian nhất định hay không
+- **Giờ vàng & Giờ chết (Workforce Planning):** Phân tích sự biến động của lượng cuộc gọi theo thời gian, xác định khung giờ quá tải và khung giờ nhàn rỗi, bố trí nhân sự
+- **Hiệu suất nhân viên (Rep Performance)**: Đánh giá hiệu suất xử lý cuộc gọi của từng nhân viên
+
+🗃️ **Quy mô dữ liệu:** 130.000+ cuộc gọi
+
+---
+
+## 2. Vấn đề Kinh doanh & Mục tiêu
+**Bối cảnh (giả định):** Trung tâm vận hành nhiều chi nhánh (`Site`), mỗi chi nhánh có đội ngũ nhân viên (`Employee`) và quản lý (`Manager`) riêng, tiếp nhận nhiều loại cuộc gọi khác nhau (được phân loại theo `Call Type`). Ban quản lý muốn đánh giá lại hiệu quả vận hành: liệu khách hàng có đang phải chờ quá lâu không, thời điểm nào quá tải, chi nhánh/nhân viên nào cần được hỗ trợ thêm, và liệu việc mở rộng doanh nghiệp qua các năm có ảnh hưởng đến chất lượng dịch vụ (SLA) không.
  
 **Câu hỏi kinh doanh cần trả lời:**
-- **SLA Compliance:** Bao nhiêu % cuộc gọi được trả lời trong ngưỡng thời gian chờ chấp nhận được? Tỷ lệ cuộc gọi bị bỏ dở (abandoned) là bao nhiêu, và có liên quan đến thời gian chờ không?
-- **Workforce Planning:** Khung giờ nào trong ngày lượng cuộc gọi tăng đột biến (peak hours)? Site nào đang quá tải so với các site khác?
-- **Performance Tracking:** Nhân viên/site nào có thời gian xử lý cuộc gọi (`CallDuration`) và thời gian chờ (`WaitTime`) tốt nhất? Loại cuộc gọi nào (`CallType`) tốn nhiều thời gian xử lý nhất?
+- **Thỏa thuận chất lượng dịch vụ (Service Level Agreement - SLA):** Bao nhiêu % cuộc gọi được trả lời trong ngưỡng thời gian chờ chấp nhận được?  Mối tương quan giữa loại cuộc gọi và thời gian chờ?
+- **Workforce Planning:** Khung giờ nào trong ngày quá tải và khung giờ nào nhàn rỗi? Biến động cuộc gọi theo ngày và tháng như thế nào? Chi nhánh nào đang quá tải, chi nhánh nào đang nhàn rỗi? Có cần bố trí lại nhân sự không?
+- **Performance Tracking:** Nhân viên/Chi nhánh nào có thời gian xử lý cuộc gọi và thời gian chờ tốt nhất và tệ nhất? Loại cuộc gọi nào chiếm tỷ trọng lớn nhất? Loại cuộc gọi nào tốn nhiều thời gian xử lý nhất?
 
 **Mục tiêu (KPI):**
-- SLA Compliance Rate (% cuộc gọi có `WaitTime` dưới ngưỡng SLA đặt ra, ví dụ 35 giây)
-- Call Abandonment Rate (dựa trên cột `CallAbandoned`)
-- Average Wait Time & Average Call Duration
-- Phân bổ khối lượng cuộc gọi theo giờ / theo site / theo loại cuộc gọi
----
-## 3. Mục tiêu
+- % SLA Compliance: Tỷ lệ cuộc gọi có đạt ngưỡng SLA về thời gian chờ
+   - Cuộc gọi đạt (`WaitTime` ≤ 35) được đánh giá là _**"Within SLA"**_
+   - Cuộc gọi không đạt (`WaitTime` ≥ 35) được đánh giá là _**"Outside SLA"**_
+- % Call Type: Tỷ trọng các loại cuộc gọi
+- % Abandoned Call: Tỷ lệ cuộc gọi bị hủy bỏ
+- Average Wait Time: Thời gian chờ trung bình
+- Average Call Duration: Thời gian xử lý cuộc gọi trung bình
+- Phân bổ khối lượng cuộc gọi theo thời gian/ theo chi nhánh/ theo loại cuộc gọi
 
 ---
 ## 3. Bộ Dữ liệu
  
-Dataset gồm 3 bảng, liên kết theo mô hình star schema: `Fact Table` (bảng sự kiện, mỗi dòng là 1 cuộc gọi) liên kết với 2 bảng dimension là `Employee Table` và `Call Type ID Table`.
+Dataset gồm **7 bảng gốc**: 4 bảng Fact tách riêng theo năm (2018–2021) và 3 bảng Dimension, liên kết theo mô hình star schema.
  
-**🔹 Fact Table**
+**🔹 Fact Tables (theo năm)**
+| Bảng | Mô tả |
+|---|---|
+| Call Center Data 2018 | Dữ liệu cuộc gọi năm 2018 |
+| Call Center Data 2019 | Dữ liệu cuộc gọi năm 2019 |
+| Call Center Data 2020 | Dữ liệu cuộc gọi năm 2020 |
+| Call Center Data 2021 | Dữ liệu cuộc gọi năm 2021 |
+ 
+Các bảng Fact đều có cấu trúc cột giống nhau:
 | Cột | Mô tả |
 |---|---|
 | CallTimestamp | Ngày & giờ diễn ra cuộc gọi |
-| CallTypeID | Mã loại cuộc gọi (liên kết với Call Type ID Table) |
-| EmployeeID | Mã nhân viên tiếp nhận cuộc gọi (liên kết với Employee Table) |
+| CallTypeID | Mã loại cuộc gọi |
+| EmployeeID | Mã nhân viên tiếp nhận cuộc gọi |
 | CallDuration | Thời lượng cuộc gọi (giây) |
 | WaitTime | Thời gian khách hàng chờ trước khi được trả lời (giây) |
-| CallAbandoned | 1 = cuộc gọi bị bỏ dở, 0 = cuộc gọi được xử lý |
+| CallAbandoned | 1 = cuộc gọi bị hủy bỏ, 0 = cuộc gọi được xử lý |
  
 **🔹 Employee Table**
 | Cột | Mô tả |
 |---|---|
-| EmployeeID | Mã nhân viên (khóa chính) |
+| EmployeeID | Mã nhân viên (Khóa chính) |
 | EmployeeName | Họ tên nhân viên |
-| Site | Chi nhánh/địa điểm làm việc |
-| ManagerName | Quản lý trực tiếp của nhân viên |
- 
+| Site | Chi nhánh làm việc |
+| ManagerName | Quản lý của nhân viên |
+
 **🔹 Call Type ID Table**
 | Cột | Mô tả |
 |---|---|
-| CallTypeID | Mã loại cuộc gọi (khóa chính) |
+| CallTypeID | Mã loại cuộc gọi (Khóa chính) |
 | CallTypeDesc | Mô tả loại cuộc gọi |
  
-> **Ghi chú:** Dataset này không có cột thể hiện kết quả xử lý cuộc gọi (VD: "đã giải quyết xong hay chưa"), nên dự án **không tính được chỉ số First Call Resolution (FCR)** như một số dự án call center khác. Đây là điểm được nêu rõ trong phần [Khó Khăn & Hạn Chế](#10-khó-khăn--hạn-chế).
- 
 ---
  
-## 4. Công Cụ Sử Dụng
-- **SQL Server** — xử lý, join 3 bảng, tổng hợp dữ liệu cuộc gọi ở cấp độ giao dịch
-- **Power BI Desktop** — xây dựng data model dạng star schema, viết DAX measures, thiết kế dashboard
-- **Excel** — kiểm tra chéo dữ liệu thô trước khi import vào SQL Server
+## 4. Công cụ sử dụng
+- **Excel:** kiểm tra chéo dữ liệu thô trước khi import vào SQL Server
+- **SQL Server:** join các bảng Dim và Fact, tổng hợp dữ liệu cuộc gọi ở cấp độ giao dịch cho từng năm và qua 4 năm, tạo các views
+- **Power BI Desktop:** xây dựng data model dạng star schema, viết DAX measures, thiết kế dashboard
+
 ---
  
-## 5. Làm Sạch Dữ Liệu
-Các bước xử lý dữ liệu thực hiện trên Fact Table:
-- Kiểm tra giá trị `NULL` hoặc âm ở `CallDuration` và `WaitTime`
-- Kiểm tra `EmployeeID` và `CallTypeID` trong Fact Table có tồn tại trong bảng dimension tương ứng không (tránh lỗi orphan record khi join)
-- Tạo cột tính toán `SLA_Flag`: đánh dấu `1` nếu `WaitTime <= 35` giây, ngược lại `0`
-- Tách `CallTimestamp` thành các cột phụ trợ: `CallDate`, `CallHour`, `DayOfWeek` để phục vụ phân tích theo khung giờ
-```sql
--- Kiểm tra dữ liệu bất thường trước khi phân tích
-SELECT COUNT(*) AS invalid_rows
-FROM FactCalls
-WHERE CallDuration < 0 OR WaitTime < 0;
- 
--- Kiểm tra orphan record (EmployeeID không tồn tại trong Employee Table)
-SELECT f.EmployeeID
-FROM FactCalls f
-LEFT JOIN EmployeeTable e ON f.EmployeeID = e.EmployeeID
-WHERE e.EmployeeID IS NULL;
- 
--- Tạo cột SLA flag
-ALTER TABLE FactCalls ADD SLA_Flag AS (CASE WHEN WaitTime <= 35 THEN 1 ELSE 0 END);
-```
- 
-**Mô hình dữ liệu (Data Model):** `Fact Table` liên kết với `Employee Table` qua `EmployeeID`, và với `Call Type ID Table` qua `CallTypeID` — đúng chuẩn star schema với 1 fact table và 2 dimension table.
- 
+## 5. Làm sạch Dữ liệu
+**1️⃣ Bước 1 - Excel: Chuẩn bị file nguồn:**
+
+- Chuyển định dạng cột `CallAbandoned` từ Text sang **Number** để khi import vào SQL Server cột này được nhận đúng kiểu dữ liệu `BIT`
+- Lưu file dưới dạng **CSV** để Import Flat File ở SSMS
+
+**2️⃣ Bước 2 - SSMS: Làm sạch các bảng Dimension:**
+
+- Loại bỏ các dòng có khóa chính bị trống ở `Dim_CallType` và `Dim_CallCharges`, tránh lỗi khi join với bảng Fact
+
+**3️⃣ Bước 3 - SSMS: Làm sạch bảng Fact:**
+- Kiểm tra `EmployeeID` và `CallTypeID` trong Fact Table có tồn tại trong bảng Dim tương ứng không, tránh lỗi orphan record khi join
+- Kiểm tra dữ liệu bất thường trước khi phân tích (`CallDuration < 0 OR WaitTime < 0`)
+- Thêm cột `SLA_Compliance` (kiểu `VARCHAR(20)`) vào từng bảng Fact theo năm, gán giá trị `'Within SLA'` nếu `WaitTime < 35`, ngược lại là `'Outside SLA'`
+
+**4️⃣ Bước 4 - SSMS: Gộp 4 bảng Fact đã làm sạch thành một view duy nhất:**
+- Sau khi mỗi bảng đã có cột `SLA_Compliance`, gộp cả 4 bảng theo năm thành view `v_Fact_All` bằng `UNION ALL`
+
 ---
  
 ## 6. Phân Tích SQL
@@ -153,9 +165,31 @@ ORDER BY avg_call_duration_sec DESC;
 ---
  
 ## 7. Dashboard Power BI
+
+**1. Xây dựng bảng Dim_Date:**
+Vì bảng `Fact_Call` chỉ có cột `CallTimestamp` dạng datetime, cần tạo riêng một bảng `Dim_Date` bằng DAX để hỗ trợ phân tích theo tháng, ngày, thứ, phục vụ theo dõi xu hướng theo thời gian mà không bị ảnh hưởng bởi các bộ lọc.
+
+```dax
+Dim_Date = 
+ var StartDate = calculate(min(Fact_Call[Call Timestamp]), all(Fact_Call))
+ var EndDate = calculate(max(Fact_Call[Call Timestamp]), all(Fact_Call))
+ return calendar(StartDate, EndDate)
+
+Year = year(Dim_Date[Date])
+Quarter = year(Dim_Date[Date]) & " Q" & quarter(Dim_Date[Date])
+Month = format(Dim_Date[Date],"yyyy mmm")
+Day = day(Dim_Date[Date])
+Weekday = format(Dim_Date[Date],"ddd")
+Month_Order = year(Dim_Date[Date]) * 100 + month(Dim_Date[Date])
+Weekday_Order = weekday(Dim_Date[Date], 2)
+```
+
+**2. Data Modeling:**
+
+
 > *(Chèn ảnh chụp màn hình dashboard thực tế tại đây, ví dụ: `![SLA Dashboard](images/dashboard_sla.png)`)*
  
-**Cấu trúc dashboard — 3 trang:**
+**Dashboard:**
 - **Trang 1 — Tổng Quan SLA:** SLA compliance rate theo ngày/tuần, abandon rate, gauge chart so với mục tiêu SLA, xu hướng theo thời gian
 - **Trang 2 — Nhân Sự & Khung Giờ:** Heatmap lượng cuộc gọi theo giờ × site, so sánh abandon rate giữa các site
 - **Trang 3 — Hiệu Suất Nhân Viên & Loại Cuộc Gọi:** Bảng xếp hạng nhân viên theo wait time/call duration, phân tích theo loại cuộc gọi (`CallTypeDesc`)
@@ -244,3 +278,5 @@ Dự án áp dụng SQL và Power BI để trả lời 3 nhóm câu hỏi cốt 
 - 💼 LinkedIn: linkedin.com/in/nguyenvana
 - 🔗 Portfolio: nguyenvana-portfolio.com
  
+---
+[^1]: KrispCall, 2026. https://krispcall.com/call-contact-center/what-is-a-call-center/
