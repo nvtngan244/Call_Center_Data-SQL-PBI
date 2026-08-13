@@ -5,7 +5,7 @@
 ---
 
 ## 📊 1. Tổng quan Dự án
-Dự án phân tích dữ liệu vận hành trong 4 năm (từ 2018 đến 2021) của một trung tâm cuộc gọi (call center - bộ phận chuyên xử lý các cuộc gọi đến và đi từ khách hàng và đối tác để chăm sóc khách hàng, hỗ trợ kỹ thuật, bán hàng hoặc thu thập thông tin thị trường, *[KrispCall, 2026]*[^1]).
+Dự án phân tích dữ liệu vận hành trong 4 năm (từ 2018 đến 2021) của trung tâm cuộc gọi **Happy Call** (call center - bộ phận chuyên xử lý các cuộc gọi đến và đi từ khách hàng và đối tác để chăm sóc khách hàng, hỗ trợ kỹ thuật, bán hàng hoặc thu thập thông tin thị trường, *[KrispCall, 2026]*[^1]).
 
 Phân tích được thực hiện bằng SQL Server để xử lý dữ liệu cuộc gọi ở cấp độ giao dịch, sau đó xây dựng dashboard Power BI nhằm theo dõi 3 nhóm bài toán cốt lõi:
 - **Thỏa thuận chất lượng dịch vụ (Service Level Agreement - SLA):** Chỉ số đánh giá liệu một cuộc gọi có được trả lời trong ngưỡng thời gian nhất định hay không
