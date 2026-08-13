@@ -21,8 +21,8 @@ Phân tích được thực hiện bằng SQL Server để xử lý dữ liệu 
  
 **❓ Câu hỏi cần trả lời:**
 - **Thỏa thuận chất lượng dịch vụ (Service Level Agreement - SLA):** Bao nhiêu % cuộc gọi được trả lời trong ngưỡng thời gian chờ chấp nhận được?  Mối tương quan giữa loại cuộc gọi và thời gian chờ?
+- **Personnel Performance:** Nhân viên nào có tỷ lệ cuộc gọi đạt chất lượng và thời gian chờ tốt nhất và tệ nhất?
 - **Workforce Planning:** Khung giờ nào trong ngày quá tải và khung giờ nào nhàn rỗi? Biến động cuộc gọi theo ngày và tháng như thế nào? Chi nhánh nào đang quá tải, chi nhánh nào đang nhàn rỗi? Có cần bố trí lại nhân sự không?
-- **Performance Tracking:** Nhân viên/Chi nhánh nào có thời gian xử lý cuộc gọi và thời gian chờ tốt nhất và tệ nhất? Loại cuộc gọi nào chiếm tỷ trọng lớn nhất? Loại cuộc gọi nào tốn nhiều thời gian xử lý nhất?
 
 **🎯 Mục tiêu (KPI):**
 - % SLA Compliance: Tỷ lệ cuộc gọi có đạt ngưỡng SLA về thời gian chờ
