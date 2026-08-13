@@ -205,9 +205,13 @@ Month_Order = year(Dim_Date[Date]) * 100 + month(Dim_Date[Date])
 Weekday_Order = weekday(Dim_Date[Date], 2)
 ```
 
+Sau đó tạo thêm cột `Call Date` ở bảng Fact để lấy ra dạng tháng/ngày/năm của cột `Call Timestamp` (bỏ giờ) để có thể nối bảng `Dim_Date` với bảng `Fact_Call` bằng trường thời gian
+
+
 **2. Data Modeling:**
 
-<img width="1000" alt="Data Modeling" src="https://github.com/user-attachments/assets/63712064-3684-40ee-8af1-aa61732b9312" />
+<img width="1000" alt="Data Modeling" src="https://github.com/user-attachments/assets/052e4aed-6b43-42a4-9315-34664e4f5076" />
+
 
 **Dashboard:**
 - **Trang 1 — Tổng Quan SLA:** SLA compliance rate theo ngày/tuần, abandon rate, gauge chart so với mục tiêu SLA, xu hướng theo thời gian
