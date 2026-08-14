@@ -112,7 +112,7 @@ Mỗi bảng Fact đều có cấu trúc cột như sau:
  
 ## 6. SQL
 
-**🔗 Full script:** 
+**🔗 Full script:** [SQL Analysis](https://github.com/nvtngan244/Call_Center_Data-SQL-PBI/blob/a9b02af311557d0b199cdf801d35a1458cf6c3f0/Project_CallCenterData.sql)
 
 **Một số bước chính:**
 - Tạo cột đánh giá chất lượng dịch vụ (Service Level Agreement - SLA): `SLA_Compliance` (kiểu `VARCHAR(20)`) vào từng bảng Fact theo năm
