@@ -17,12 +17,20 @@ Phân tích được thực hiện bằng SQL Server để xử lý dữ liệu 
 ---
 
 ## 2. Vấn đề Kinh doanh & Mục tiêu
-**📍 Bối cảnh (giả định):** Trung tâm vận hành nhiều chi nhánh (`Site`), mỗi chi nhánh có đội ngũ nhân viên (`Employee`) và quản lý (`Manager`) riêng, tiếp nhận nhiều loại cuộc gọi khác nhau (được phân loại theo `Call Type`). Ban quản lý muốn đánh giá lại hiệu quả vận hành: liệu khách hàng có đang phải chờ quá lâu không, thời điểm nào quá tải, chi nhánh/nhân viên nào cần được hỗ trợ thêm, và liệu việc mở rộng doanh nghiệp qua các năm có ảnh hưởng đến chất lượng dịch vụ (SLA) không.
+**📍 Bối cảnh (giả định):** Trung tâm cuộc gọi tại Mỹ vận hành nhiều chi nhánh (`Site`), mỗi chi nhánh có đội ngũ nhân viên (`Employee`) và quản lý (`Manager`) riêng, tiếp nhận nhiều loại cuộc gọi khác nhau (được phân loại theo `Call Type`). Ban quản lý muốn đánh giá lại hiệu quả vận hành: liệu khách hàng có đang phải chờ quá lâu không, thời điểm nào quá tải, chi nhánh/nhân viên nào cần được hỗ trợ thêm, và liệu việc mở rộng doanh nghiệp qua các năm có ảnh hưởng đến chất lượng dịch vụ (SLA) không.
  
 **❓ Câu hỏi cần trả lời:**
-- **Thỏa thuận chất lượng dịch vụ (Service Level Agreement - SLA):** Bao nhiêu % cuộc gọi được trả lời trong ngưỡng thời gian chờ chấp nhận được?  Mối tương quan giữa loại cuộc gọi và thời gian chờ?
-- **Personnel Performance:** Nhân viên nào có tỷ lệ cuộc gọi đạt chất lượng và thời gian chờ tốt nhất và tệ nhất?
-- **Workforce Planning:** Khung giờ nào trong ngày quá tải và khung giờ nào nhàn rỗi? Biến động cuộc gọi theo ngày và tháng như thế nào? Chi nhánh nào đang quá tải, chi nhánh nào đang nhàn rỗi? Có cần bố trí lại nhân sự không?
+- **Thỏa thuận chất lượng dịch vụ (Service Level Agreement - SLA):**
+  - Bao nhiêu % cuộc gọi được trả lời trong ngưỡng thời gian chờ chấp nhận được?
+  - Mối tương quan giữa loại cuộc gọi và thời gian chờ?
+- **Personnel Performance:**
+  - Nhân viên nào có tỷ lệ cuộc gọi đạt chất lượng tốt nhất và tệ nhất?
+  - Nhân viên nào có thời gian chờ ngắn nhất và dài nhất?
+- **Call Breakdown:**
+  - Khung giờ nào trong ngày quá tải và khung giờ nào nhàn rỗi?
+  - Biến động cuộc gọi theo ngày và tháng như thế nào?
+  - Chi nhánh nào đang quá tải, chi nhánh nào đang nhàn rỗi?
+  - Có cần bố trí lại nhân sự không?
 
 **🎯 Mục tiêu (KPI):**
 - % SLA Compliance: Tỷ lệ cuộc gọi có đạt ngưỡng SLA về thời gian chờ
@@ -39,15 +47,9 @@ Phân tích được thực hiện bằng SQL Server để xử lý dữ liệu 
  
 Dataset gồm **7 bảng gốc**: 4 bảng Fact tách riêng theo năm (2018–2021) và 3 bảng Dimension, liên kết theo mô hình star schema.
  
-**🔹 Fact Tables (theo năm)**
-| Bảng | Mô tả |
-|---|---|
-| Call Center Data 2018 | Dữ liệu cuộc gọi năm 2018 |
-| Call Center Data 2019 | Dữ liệu cuộc gọi năm 2019 |
-| Call Center Data 2020 | Dữ liệu cuộc gọi năm 2020 |
-| Call Center Data 2021 | Dữ liệu cuộc gọi năm 2021 |
+**🔹 4 Fact Tables (2018 - 2021)**
  
-Các bảng Fact đều có cấu trúc cột giống nhau:
+Mỗi bảng Fact đều có cấu trúc cột như sau:
 | Cột | Mô tả |
 |---|---|
 | CallTimestamp | Ngày & giờ diễn ra cuộc gọi |
@@ -92,12 +94,11 @@ Các bảng Fact đều có cấu trúc cột giống nhau:
  
 ## 5. Làm sạch Dữ liệu
 **1️⃣ Bước 1 - Excel: Chuẩn bị file nguồn:**
-
+- Kiểm tra các dòng và ô bị trống và xử lý nếu có (dữ liệu này không có)
 - Chuyển định dạng cột `CallAbandoned` từ Text sang **Number** để khi import vào SQL Server cột này được nhận đúng kiểu dữ liệu `BIT`
 - Lưu file dưới dạng **CSV** để Import Flat File ở SSMS
 
 **2️⃣ Bước 2 - SSMS: Làm sạch các bảng Dimension:**
-
 - Loại bỏ các dòng có khóa chính bị trống ở `Dim_CallType` và `Dim_CallCharges`, tránh lỗi khi join với bảng Fact
 
 **3️⃣ Bước 3 - SSMS: Làm sạch bảng Fact:**
@@ -108,199 +109,84 @@ Các bảng Fact đều có cấu trúc cột giống nhau:
 - Sau khi mỗi bảng đã có cột `SLA_Compliance`, gộp cả 4 bảng theo năm thành view `v_Fact_All` bằng `UNION ALL`
 
 ---
-## 6. Chuẩn bị Dữ liệu
-**1️⃣ Bước 1: Tạo cột đánh giá chất lượng dịch vụ (Service Level Agreement - SLA):**
-- Thêm cột `SLA_Compliance` (kiểu `VARCHAR(20)`) vào từng bảng Fact theo năm
+ 
+## 6. SQL
+
+**🔗 Full script:** 
+
+**Một số bước chính:**
+- Tạo cột đánh giá chất lượng dịch vụ (Service Level Agreement - SLA): `SLA_Compliance` (kiểu `VARCHAR(20)`) vào từng bảng Fact theo năm
   - Gán giá trị `'Within SLA'` nếu `WaitTime < 35`
   - Ngược lại là `'Outside SLA'`
 
-**2️⃣ Bước 2: Tạo cột giá cước theo phút:**
-- Thêm cột `Call_Charge` vào từng bảng Fact theo năm, lấy dữ liệu giá cước từ bảng `Dim_CallCharges`
+- Tạo view thông tin chi tiết cuộc gọi của tất cả các năm: `v_Call_All`
+  - Sử dụng `UNION ALL` cho 4 bảng FACT
+  - Sau đó `INNER JOIN` với 3 bảng DIM
 
-**3️⃣ Bước 3 - Tạo cột tổng giá cước:**
-- Thêm cột `Total_Call_Charge` vào từng bảng Fact theo năm, được tính bằng công thức `cast((CallDuration/ 60.00 * Call_Charge) as decimal(5,2))`
+- Trả lời các câu hỏi:
+  - Tỷ lệ tuân thủ SLA tổng thể là bao nhiêu %
+  - Phân tích sự biến động của cuộc gọi theo giờ, ngày, tháng
+  - Top 5 và Bottom 5 nhân viên xử lý cuộc gọi hiệu quả nhất (theo thời gian chờ và tỷ lệ tuân thủ SLA)
+  - Loại cuộc gọi nào chiếm tỷ trọng lớn nhất? Có mối tương quan nào giữa Call Type và thời gian chờ không?
 
----
- 
-## 7. SQL Server
- 
-**Câu hỏi 1 (SLA Compliance): SLA compliance rate và abandon rate theo từng ngày trong tuần?**
-```sql
-SELECT 
-    DATENAME(WEEKDAY, f.CallTimestamp) AS day_of_week,
-    COUNT(*) AS total_calls,
-    ROUND(AVG(CAST(f.SLA_Flag AS FLOAT)), 3) AS sla_compliance_rate,
-    ROUND(AVG(CAST(f.CallAbandoned AS FLOAT)), 3) AS abandon_rate
-FROM FactCalls f
-GROUP BY DATENAME(WEEKDAY, f.CallTimestamp)
-ORDER BY total_calls DESC;
-```
-*Insight: [Điền kết quả thực tế sau khi chạy query trên dữ liệu của bạn — ví dụ: ngày nào có abandon rate cao nhất, có tương quan với SLA compliance thấp không]*
- 
-**Câu hỏi 2 (Workforce Planning): Khung giờ nào trong ngày có lượng cuộc gọi cao nhất, theo từng site?**
-```sql
-SELECT 
-    e.Site,
-    DATEPART(HOUR, f.CallTimestamp) AS call_hour,
-    COUNT(*) AS total_calls,
-    ROUND(AVG(CAST(f.CallAbandoned AS FLOAT)), 3) AS abandon_rate
-FROM FactCalls f
-JOIN EmployeeTable e ON f.EmployeeID = e.EmployeeID
-GROUP BY e.Site, DATEPART(HOUR, f.CallTimestamp)
-ORDER BY e.Site, total_calls DESC;
-```
-*Insight: [Điền khung giờ cao điểm thực tế theo từng site — site nào có mức chênh lệch tải giữa các giờ lớn nhất, cần ưu tiên bố trí thêm nhân sự]*
- 
-**Câu hỏi 3 (Performance Tracking): Site/nhân viên nào có thời gian chờ và xử lý cuộc gọi tốt nhất?**
-```sql
-SELECT 
-    e.Site,
-    e.EmployeeName,
-    e.ManagerName,
-    COUNT(f.EmployeeID) AS total_calls_handled,
-    ROUND(AVG(f.WaitTime), 1) AS avg_wait_time_sec,
-    ROUND(AVG(f.CallDuration), 1) AS avg_call_duration_sec,
-    ROUND(AVG(CAST(f.CallAbandoned AS FLOAT)), 3) AS abandon_rate
-FROM FactCalls f
-JOIN EmployeeTable e ON f.EmployeeID = e.EmployeeID
-GROUP BY e.Site, e.EmployeeName, e.ManagerName
-ORDER BY avg_wait_time_sec ASC;
-```
-*Insight: [Điền top/bottom nhân viên thực tế — nhân viên nào có avg_wait_time thấp nhưng abandon_rate cũng thấp là nhóm hiệu suất tốt nhất, cần nhân rộng quy trình]*
- 
-**Câu hỏi 4 (Call Type Analysis): Loại cuộc gọi nào tốn thời gian xử lý nhiều nhất?**
-```sql
-SELECT 
-    ct.CallTypeDesc,
-    COUNT(*) AS total_calls,
-    ROUND(AVG(f.CallDuration), 1) AS avg_call_duration_sec,
-    ROUND(AVG(f.WaitTime), 1) AS avg_wait_time_sec
-FROM FactCalls f
-JOIN CallTypeTable ct ON f.CallTypeID = ct.CallTypeID
-GROUP BY ct.CallTypeDesc
-ORDER BY avg_call_duration_sec DESC;
-```
-*Insight: [Điền loại cuộc gọi nào chiếm nhiều thời gian xử lý nhất — có thể là cơ sở để tách riêng đội ngũ chuyên trách cho loại cuộc gọi phức tạp]*
- 
 ---
  
 ## 7. Power BI
 
-**1. Xây dựng bảng Dim_Date:**
+**1️⃣ Xây dựng bảng Dim_Date:**
 
-Vì bảng `Fact_Call` chỉ có cột `CallTimestamp` dạng _datetime_, cần tạo riêng một bảng `Dim_Date` bằng DAX để hỗ trợ phân tích theo tháng, ngày, thứ, phục vụ theo dõi xu hướng theo thời gian mà không bị ảnh hưởng bởi các bộ lọc
-
-```dax
-Dim_Date = 
- var StartDate = calculate(min(Fact_Call[Call Timestamp]), all(Fact_Call))
- var EndDate = calculate(max(Fact_Call[Call Timestamp]), all(Fact_Call))
- return calendar(StartDate, EndDate)
-
-Year = year(Dim_Date[Date])
-Quarter = year(Dim_Date[Date]) & " Q" & quarter(Dim_Date[Date])
-Month = format(Dim_Date[Date],"yyyy mmm")
-Day = day(Dim_Date[Date])
-Weekday = format(Dim_Date[Date],"ddd")
-Month_Order = year(Dim_Date[Date]) * 100 + month(Dim_Date[Date])
-Weekday_Order = weekday(Dim_Date[Date], 2)
-```
-
-Sau đó tạo thêm cột `Call Date` ở bảng Fact để lấy ra dạng tháng/ngày/năm của cột `Call Timestamp` (bỏ giờ) để có thể nối bảng `Dim_Date` với bảng `Fact_Call` bằng trường thời gian
+- Vì bảng `Fact_Call` chỉ có cột `CallTimestamp` dạng _datetime_, cần tạo riêng một bảng `Dim_Date` bằng DAX để hỗ trợ phân tích theo tháng, ngày, thứ, phục vụ theo dõi xu hướng theo thời gian mà không bị ảnh hưởng bởi các bộ lọc
+- Sau đó tạo thêm cột `Call Date` ở bảng Fact để lấy ra dạng tháng/ngày/năm của cột `Call Timestamp` (bỏ giờ) để có thể nối bảng `Dim_Date` với bảng `Fact_Call` bằng trường thời gian
 
 
-**2. Data Modeling:**
+**2️⃣ Data Modeling:**
 
 <img width="1000" alt="Data Modeling" src="https://github.com/user-attachments/assets/052e4aed-6b43-42a4-9315-34664e4f5076" />
 
 
-**Dashboard:**
-- **Trang 1 — Tổng Quan SLA:** SLA compliance rate theo ngày/tuần, abandon rate, gauge chart so với mục tiêu SLA, xu hướng theo thời gian
-- **Trang 2 — Nhân Sự & Khung Giờ:** Heatmap lượng cuộc gọi theo giờ × site, so sánh abandon rate giữa các site
-- **Trang 3 — Hiệu Suất Nhân Viên & Loại Cuộc Gọi:** Bảng xếp hạng nhân viên theo wait time/call duration, phân tích theo loại cuộc gọi (`CallTypeDesc`)
+**3️⃣ Dashboard:**
+- **Trang 1 - Tổng Quan SLA (Overall):**
+<img width="1000" alt="CallCenterData_PBI_Dashboard_Page1" src="https://github.com/user-attachments/assets/e1e954dd-ab07-431b-b8e8-a7255107a61c" />
 
-**DAX Measures tiêu biểu:**
-```dax
-SLA Compliance Rate = 
-DIVIDE(
-    CALCULATE(COUNTROWS(FactCalls), FactCalls[SLA_Flag] = 1),
-    COUNTROWS(FactCalls)
-)
- 
-Abandonment Rate = 
-DIVIDE(
-    CALCULATE(COUNTROWS(FactCalls), FactCalls[CallAbandoned] = 1),
-    COUNTROWS(FactCalls)
-)
- 
-Average Wait Time (sec) = AVERAGE(FactCalls[WaitTime])
- 
-Average Call Duration (sec) = AVERAGE(FactCalls[CallDuration])
- 
-Total Calls = COUNTROWS(FactCalls)
-```
- 
+- **Trang 2 - Phân tích Loại cuộc gọi & Hiệu suất Chi nhánh (Breakdown):**
+<img width="1000" alt="CallCenterData_PBI_Dashboard_Page2" src="https://github.com/user-attachments/assets/0d5d25c6-18be-4ba0-8e13-94cc81c78c97" />
+
+- **Trang 3 - Hiệu suất Nhân sự (Personnel):**
+<img width="1000" alt="CallCenterData_PBI_Dashboard_Page3" src="https://github.com/user-attachments/assets/79a3225d-3484-4e3b-a176-4cc2f296adc9" />
+
+
 ---
  
-## 8. Phát Hiện Chính
-> Điền các phát hiện nổi bật nhất sau khi chạy đầy đủ query ở mục 6. Gợi ý các hướng phát hiện thường gặp với loại dữ liệu này:
-- 🔑 [SLA compliance rate tổng thể là bao nhiêu %, so với mục tiêu đề ra]
-- 🔑 [Khung giờ/ngày nào có abandon rate cao bất thường]
-- 🔑 [Site nào đang có hiệu suất (wait time, abandon rate) kém hơn hẳn các site còn lại]
-- 🔑 [Loại cuộc gọi nào chiếm tỷ trọng lớn và có avg_call_duration cao nhất]
+## 8. Insights chính
+- 🔑 SLA trung bình 2018–2021 đạt 88.22%, xu hướng tăng nhưng chững lại ở năm gần nhất (chỉ tăng 0.01% so với năm trước)
+- 🔑 Không có khác biệt đáng kể giữa các loại cuộc gọi (thời gian chờ, tỷ lệ tuân thủ SLA đều tương đương) và giữa các chi nhánh (tỷ lệ tuân thủ SLA, số cuộc gọi mỗi nhân viên nhận đồng đều dù tổng số cuộc gọi mỗi chi nhanh tiếp nhận khác nhau)
+- 🔑 Khối lượng cuộc gọi tập trung rõ theo thời gian: cao điểm 8h–12h và đầu tháng, thấp điểm cuối ngày và cuối tháng
+- 🔑 Có nhóm nhân sự ổn định tốt và nhóm yếu ở cả 2 chỉ số (thời gian chờ và tỷ lệ tuân thủ SLA); chi nhánh Aurora, CO ổn định nhất, chi nhánh Spokane, WA phân hóa hiệu suất nội bộ mạnh nhất
+
 ---
  
-## 9. Đề Xuất Giải Pháp
-> Đề xuất cần bám sát vào Key Insights thực tế ở mục 8. Ví dụ mẫu:
-- ✅ Bổ sung nhân sự vào khung giờ/site có abandon rate cao nhất được phát hiện ở mục 6-7
-- ✅ Xây dựng quy trình chuẩn (SOP) riêng cho loại cuộc gọi có avg_call_duration cao nhất, giảm tải xử lý
-- ✅ Nhân rộng quy trình làm việc của site/nhân viên có hiệu suất tốt nhất sang các site khác
-- ✅ Thiết lập ngưỡng cảnh báo SLA real-time để quản lý (Manager) từng site kịp thời điều phối
+## 9. Kiến nghị
+- ✅ Không cần can thiệp theo loại cuộc gọi và chi nhánh - các chỉ số đều ổn định
+- ✅ Ưu tiên bố trí nhân sự tập trung nhiều hơn vào khung 8h–12h
+- ✅ Đào tạo lại nhóm nhân sự yếu; kiểm tra vấn đề nằm ở cá nhân hay quản lý
+- ✅ Rà soát quy trình đào tạo/phân ca tại chi nhánh Spokane, WA
+
 ---
  
-## 10. Khó Khăn & Hạn Chế
-- Dataset **không có cột thể hiện kết quả xử lý cuộc gọi** (resolution status), nên không thể tính First Call Resolution (FCR) — một chỉ số quan trọng khi đánh giá chất lượng dịch vụ
-- Dataset không có thông tin chi phí vận hành theo site/nhân viên, nên chưa thể tính ROI cụ thể của các đề xuất bổ sung nhân sự
-- Bối cảnh doanh nghiệp (tên công ty, mục tiêu SLA cụ thể) là giả định, ngưỡng SLA 35 giây được chọn theo chuẩn phổ biến của ngành, không phải số liệu nội bộ thực tế
+## 10. Khó khăn & Hạn chế
+- **Không sử dụng được triệt để dữ liệu Giá cước (Call Charge):** Dataset chỉ có giá cước mỗi phút, không rõ là phí khách trả hay chi phí vận hành cuộc gọi nên chưa sử dụng được dữ liệu này
+- **Không đưa ra được insight trực tiếp về bố trí nhân sự:** Dataset không có bảng ca trực nên không thể trực tiếp tính phân bổ nhân sự trực ca, chỉ có thể tính gián tiếp bằng số cuộc gọi mỗi nhân viên nhận ở mỗi chi nhánh
+- **Không tính được First Call Resolution (FCR) - tỷ lệ phần trăm của các cuộc gọi được giải quyết trong lần liên hệ đầu tiên:** FCR là chỉ số quan trọng ở nhiều trung tâm cuộc gọi, tuy nhiên dataset này không có các cột thể hiện kết quả xử lý cuộc gọi, ID người gọi, ID vấn đề cần xử lý nên không thể tính được
+
+**>> Đề xuất lên Stakeholders về việc bổ sung các chỉ số trên**
+
 ---
+
+# 🌟 Thanks for reading!
  
-## 11. Kết Luận
-Dự án áp dụng SQL và Power BI để trả lời 3 nhóm câu hỏi cốt lõi trong vận hành call center — SLA Compliance, Workforce Planning và Performance Tracking — dựa trên bộ dữ liệu thực tế gồm Fact Table và 2 dimension table (Employee, Call Type). Qua dự án, mình thực hành xây dựng star schema, viết SQL để tính các KPI đặc thù ngành (SLA rate, Abandonment rate, Wait time), đồng thời hiểu rõ hơn về giới hạn của một bộ dữ liệu thực tế (thiếu cột FCR) và cách trình bày điều đó minh bạch thay vì suy diễn thêm dữ liệu không có.
- 
----
- 
-## 12. Hướng Dẫn Chạy Dự Án
- 
-**Cấu trúc thư mục:**
-```
-├── data/
-│   ├── FactCalls.csv
-│   ├── EmployeeTable.csv
-│   └── CallTypeTable.csv
-├── sql/
-│   ├── 01_data_cleaning.sql
-│   ├── 02_sla_analysis.sql
-│   ├── 03_workforce_analysis.sql
-│   ├── 04_performance_analysis.sql
-│   └── 05_calltype_analysis.sql
-├── powerbi/
-│   └── CallCenter_Dashboard.pbix
-├── images/
-│   ├── dashboard_sla.png
-│   ├── dashboard_workforce.png
-│   └── dashboard_performance.png
-└── README.md
-```
- 
-**Các bước thực hiện:**
-1. Clone repository: `git clone https://github.com/username/callcenter-analytics.git`
-2. Import 3 file CSV trong thư mục `data/` vào SQL Server (đặt tên bảng: `FactCalls`, `EmployeeTable`, `CallTypeTable`)
-3. Chạy lần lượt các file trong `sql/` theo thứ tự
-4. Mở file `CallCenter_Dashboard.pbix` bằng Power BI Desktop, trỏ lại data source về SQL Server của bạn
----
- 
-## 13. Liên Hệ
-- 📧 Email: nguyenvana@example.com
-- 💼 LinkedIn: linkedin.com/in/nguyenvana
+## Liên hệ:
+- 📧 Email: nvtngan244@gmail.com
+- 💼 LinkedIn: https://www.linkedin.com/in/thungan-ngo/
 - 🔗 Portfolio: nguyenvana-portfolio.com
  
 ---
