@@ -23,7 +23,6 @@ update Fact_CallCenterData2020
 update Fact_CallCenterData2021
 	set SLA_Compliance = case when waittime < 35 then 'Within SLA' else 'Outside SLA' end
 
-
 ------------------------
 
 /*
@@ -47,8 +46,7 @@ right join Call1820 b on year(b.CallTimeStamp) = a._Year
 group by _Year
 order by _Year
 
-
-
+------------------------
 
 /*
 2. Giờ vàng & Giờ chết:
@@ -83,8 +81,7 @@ from #All_CallData
 group by month(CallTimestamp)
 order by count(CallDuration) desc
 
-
-
+------------------------
 
 /*
 3. Hiệu suất nhân viên (Rep Performance): 
@@ -120,8 +117,7 @@ from v_Call_All
 group by EmployeeID, EmployeeName
 order by avg(WaitTime) desc
 
-
-
+------------------------
 
 /*
 4. Phân tích loại cuộc gọi:
@@ -142,8 +138,7 @@ select
 from v_Call_All
 group by CallTypeID
 
-
-
+------------------------
 
 /*
 5. Báo cáo xu hướng (Trend Analysis)
