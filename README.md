@@ -187,7 +187,6 @@ Mỗi bảng Fact đều có cấu trúc cột như sau:
 ## Liên hệ:
 - 📧 Email: nvtngan244@gmail.com
 - 💼 LinkedIn: https://www.linkedin.com/in/thungan-ngo/
-- 🔗 Portfolio: nguyenvana-portfolio.com
  
 ---
 [^1]: KrispCall, 2026. https://krispcall.com/call-contact-center/what-is-a-call-center/
