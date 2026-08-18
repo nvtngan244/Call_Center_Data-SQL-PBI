@@ -1,7 +1,5 @@
 # ☎️ Dự án Phân tích Vận hành Trung tâm Cuộc gọi 📶
 
-> **Lưu ý:** Bối cảnh doanh nghiệp trong dự án này (tên công ty, quy mô, tình huống kinh doanh) là **giả định**, được xây dựng để minh họa cách áp dụng phân tích dữ liệu vào bài toán vận hành trung tâm cuộc gọi thực tế.
-
 ---
 
 ## 📊 1. Tổng quan Dự án
@@ -17,7 +15,7 @@ Phân tích được thực hiện bằng SQL Server để xử lý dữ liệu 
 ---
 
 ## 2. Vấn đề Kinh doanh & Mục tiêu
-**📍 Bối cảnh (giả định):** Trung tâm cuộc gọi tại Mỹ vận hành nhiều chi nhánh (`Site`), mỗi chi nhánh có đội ngũ nhân viên (`Employee`) và quản lý (`Manager`) riêng, tiếp nhận nhiều loại cuộc gọi khác nhau (được phân loại theo `Call Type`). Ban quản lý muốn đánh giá lại hiệu quả vận hành: liệu khách hàng có đang phải chờ quá lâu không, thời điểm nào quá tải, chi nhánh/nhân viên nào cần được hỗ trợ thêm, và liệu việc mở rộng doanh nghiệp qua các năm có ảnh hưởng đến chất lượng dịch vụ (SLA) không.
+**📍 Bối cảnh:** Trung tâm cuộc gọi tại Mỹ vận hành nhiều chi nhánh (`Site`), mỗi chi nhánh có đội ngũ nhân viên (`Employee`) và quản lý (`Manager`) riêng, tiếp nhận nhiều loại cuộc gọi khác nhau (được phân loại theo `Call Type`). Ban quản lý muốn đánh giá lại hiệu quả vận hành: liệu khách hàng có đang phải chờ quá lâu không, thời điểm nào quá tải, chi nhánh/nhân viên nào cần được hỗ trợ thêm, và liệu việc mở rộng doanh nghiệp qua các năm có ảnh hưởng đến chất lượng dịch vụ (SLA) không.
  
 **❓ Câu hỏi cần trả lời:**
 - **Thỏa thuận chất lượng dịch vụ (Service Level Agreement - SLA):**
@@ -183,10 +181,6 @@ Mỗi bảng Fact đều có cấu trúc cột như sau:
 ---
 
 # 🌟 Thanks for reading!
- 
-## Liên hệ:
-- 📧 Email: nvtngan244@gmail.com
-- 💼 LinkedIn: https://www.linkedin.com/in/thungan-ngo/
  
 ---
 [^1]: KrispCall, 2026. https://krispcall.com/call-contact-center/what-is-a-call-center/
