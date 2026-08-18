@@ -139,7 +139,8 @@ Mỗi bảng Fact đều có cấu trúc cột như sau:
 
 **2️⃣ Data Modeling:**
 
-<img width="1000" alt="Data Modeling" src="https://github.com/user-attachments/assets/052e4aed-6b43-42a4-9315-34664e4f5076" />
+<img width="1000" alt="Data Modeling" src="https://github.com/user-attachments/assets/78384685-77c5-4c9b-bdc7-86c956840a52" />
+
 
 
 **3️⃣ Dashboard:**
